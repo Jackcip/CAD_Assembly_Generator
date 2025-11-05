@@ -1,6 +1,4 @@
 import cadquery as cq
-import math
-import os
 import numpy as np
 
 def generate_naca_points(code: str, n_points_per_surface: int, chord: float):

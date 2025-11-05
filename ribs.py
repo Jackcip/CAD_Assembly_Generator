@@ -1,5 +1,4 @@
 import cadquery as cq
-import math
 from wing import generate_naca_points
 
 def build_rib(params):

@@ -33,6 +33,3 @@ def generate_assembly(params):
         wing.export(os.path.join(EXPORT_PATH, "wing.step"))
         ribs.export(os.path.join(EXPORT_PATH, "ribs.step"))
         spar.export(os.path.join(EXPORT_PATH, "spar.step"))
-
-    print(f"✅ Assembly exported to {EXPORT_PATH}")
-
