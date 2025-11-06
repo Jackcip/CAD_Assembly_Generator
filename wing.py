@@ -46,7 +46,7 @@ def generate_naca_points(code: str, n_points_per_surface: int, chord: float):
     xl = x + yt * np.sin(theta)
     yl = yc - yt * np.cos(theta)
 
-    # Combina le due superfici (in ordine chiuso)
+    # Combina le due superfici
     upper_surface = np.column_stack((xu * chord, yu * chord))
     lower_surface = np.column_stack((xl * chord, yl * chord))
     lower_surface[-1] = np.array([chord, 0.0])

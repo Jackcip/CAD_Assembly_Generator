@@ -5,13 +5,13 @@ from ttkbootstrap import Style
 import assembly
 import os
 import sys
+import traceback
 
 # ============================
 #   GESTIONE ICONA E PERCORSI
 # ============================
 
 def resource_path(relative_path):
-    """Ottiene il percorso assoluto per le risorse, funziona per dev e per PyInstaller"""
     try:
         # PyInstaller crea una cartella temp e memorizza il percorso in _MEIPASS
         base_path = sys._MEIPASS
@@ -94,7 +94,7 @@ def on_canvas_configure(event):
     rib_canvas.itemconfig("inner_frame", width=event.width)
 
 def confirm_inputs():
-    import traceback
+
     try:
         naca = str(entry_naca.get().strip())
         span = float(entry_span.get())
@@ -172,9 +172,9 @@ def confirm_inputs():
     except Exception as e:
         messagebox.showerror("Invalid value", f"{e}")
 
-# ============================
-#   LAYOUT MIGLIORATO
-# ============================
+# ===========
+#   LAYOUT 
+# ===========
 
 title = ttk.Label(main_frame, text="CAD Wing Assembly Generator", font=("Segoe UI", 16, "bold"))
 title.grid(row=0, column=0, columnspan=3, pady=15)

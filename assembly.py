@@ -7,7 +7,7 @@ from spar import build_single_spar
 
 def generate_assembly(params):
     """
-    Generate the wing assembly using parameters passed from the GUI.
+    Generate the wing assembly
     """
     try:
         EXPORT_PATH = params["EXPORT_PATH"]
@@ -17,9 +17,8 @@ def generate_assembly(params):
         wing = build_wing_shell(params)
         ribs = build_all_ribs(params)
         spar = build_single_spar(**params)
-        # ... rest as before ...
     except Exception as e:
-        # rilancia per la GUI
+        
         raise
 
     asm = cq.Assembly()
