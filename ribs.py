@@ -24,10 +24,10 @@ def build_rib(params):
     if spar_d > chord * 0.9:
         raise ValueError("Spar diameter/size is unreasonably large relative to chord.")
 
-    # definisci piano di lavoro
+    # define workplane
     wp = rib.faces(">Z").workplane().moveTo(hole_x, spar_center_height)
 
-    # aggiungi foro o foro quadrato
+    # add hole
     if spar_shape == "circular":
         rib = wp.hole(spar_d)
     elif spar_shape == "square":

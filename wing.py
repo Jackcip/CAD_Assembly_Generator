@@ -3,19 +3,18 @@ import numpy as np
 
 def generate_naca_points(code: str, n_points_per_surface: int, chord: float):
     """
-    Genera i punti 2D di un profilo NACA a 4 cifre (simmetrico o non simmetrico)
-    utilizzando NumPy per calcoli vettoriali.
+    2D Profile generator (simmetrico o non simmetrico)
     """
-    # Decodifica il codice NACA
-    m = int(code[0]) / 100.0  # camber massimo
-    p = int(code[1]) / 10.0   # posizione del camber massimo
-    t = int(code[2:]) / 100.0 # spessore relativo massimo
+    # retrieving airfoil info from NACA code
+    m = int(code[0]) / 100.0  # max camber
+    p = int(code[1]) / 10.0   # max camber position
+    t = int(code[2:]) / 100.0 # max relative thickness
 
-    # Distribuzione dei punti lungo la corda (cosinusoidale)
+    # chord-wise panelization (cosine law)
     beta = np.linspace(0, np.pi, n_points_per_surface + 1)
-    x = 0.5 * (1 - np.cos(beta))  # distribuzione più densa vicino al bordo d’attacco
+    x = 0.5 * (1 - np.cos(beta))  # more density near leading edge
 
-    # Formula dello spessore (valida per tutti i profili NACA a 4 cifre)
+    # thickness law
     yt = 5 * t * (
         0.2969 * np.sqrt(x)
         - 0.1260 * x
@@ -24,11 +23,11 @@ def generate_naca_points(code: str, n_points_per_surface: int, chord: float):
         - 0.1015 * x**4
     )
 
-    # Linea media e derivata dyc/dx
+    # mid line and derivative dyc/dx
     yc = np.zeros_like(x)
     dyc_dx = np.zeros_like(x)
 
-    if p != 0:  # profilo non simmetrico
+    if p != 0:  # asymmetrical profile
         for i, xi in enumerate(x):
             if xi < p:
                 yc[i] = (m / p**2) * (2 * p * xi - xi**2)
@@ -37,16 +36,16 @@ def generate_naca_points(code: str, n_points_per_surface: int, chord: float):
                 yc[i] = (m / (1 - p)**2) * ((1 - 2 * p) + 2 * p * xi - xi**2)
                 dyc_dx[i] = (2 * m / (1 - p)**2) * (p - xi)
 
-    # Angolo di inclinazione della linea media
+    # angle of attack (WRT mid line)
     theta = np.arctan(dyc_dx)
 
-    # Coordinate superficie superiore e inferiore
+    # upper and lower surfaces coordinates
     xu = x - yt * np.sin(theta)
     yu = yc + yt * np.cos(theta)
     xl = x + yt * np.sin(theta)
     yl = yc - yt * np.cos(theta)
 
-    # Combina le due superfici
+    # joining surfaces
     upper_surface = np.column_stack((xu * chord, yu * chord))
     lower_surface = np.column_stack((xl * chord, yl * chord))
     lower_surface[-1] = np.array([chord, 0.0])
@@ -56,7 +55,7 @@ def generate_naca_points(code: str, n_points_per_surface: int, chord: float):
 
     return airfoil_points
 
-
+# solid creation
 
 def build_wing_shell(params):
     chord = params["CHORD"]

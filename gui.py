@@ -8,18 +8,17 @@ import sys
 import traceback
 
 # ============================
-#   GESTIONE ICONA E PERCORSI
+#   ICON AND RESOURCE PATH
 # ============================
 
 def resource_path(relative_path):
+    """Get the absolute path for resource files (used for PyInstaller)."""
     try:
-        # PyInstaller crea una cartella temp e memorizza il percorso in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
     
-    path = os.path.join(base_path, relative_path)
-    return path
+    return os.path.join(base_path, relative_path)
 
 # ============================
 #   GUI SETUP
@@ -32,14 +31,14 @@ root.geometry("900x650")
 root.minsize(850, 600)
 root.resizable(True, True)
 
-# Imposta l'icona
+# App icon setup
 try:
     icon_path = resource_path("icon.ico")
     root.iconbitmap(icon_path)
 except Exception as e:
-    print(f"Impossibile caricare l'icona: {e}")
+    print(f"Unable to load icon: {e}")
 
-# Scroll container principale
+# Scrollable container
 canvas = tk.Canvas(root)
 scroll_y = ttk.Scrollbar(root, orient="vertical", command=canvas.yview)
 main_frame = ttk.Frame(canvas)
@@ -54,24 +53,25 @@ canvas.configure(yscrollcommand=scroll_y.set)
 canvas.pack(side="left", fill="both", expand=True)
 scroll_y.pack(side="right", fill="y")
 
-# Configurare i pesi per la responsività
 main_frame.columnconfigure(0, weight=1)
 main_frame.columnconfigure(2, weight=1)
 main_frame.rowconfigure(1, weight=1)
 
 # ============================
-#   FUNZIONI
+#   FUNCTIONS
 # ============================
 
 rib_entries = []
 
 def browse_folder():
+    """Open folder selection dialog for export path."""
     folder = filedialog.askdirectory()
     if folder:
         entry_export_path.delete(0, tk.END)
         entry_export_path.insert(0, folder)
 
 def update_rib_positions():
+    """Update the list of rib position input boxes based on rib count."""
     try:
         count = int(spin_rib_count.get())
     except ValueError:
@@ -88,13 +88,15 @@ def update_rib_positions():
     rib_canvas.configure(scrollregion=rib_canvas.bbox("all"))
 
 def configure_scroll_region(event=None):
+    """Adjust scroll region when the inner frame size changes."""
     rib_canvas.configure(scrollregion=rib_canvas.bbox("all"))
 
 def on_canvas_configure(event):
+    """Ensure the inner frame width matches the canvas width."""
     rib_canvas.itemconfig("inner_frame", width=event.width)
 
 def confirm_inputs():
-
+    """Validate inputs, build parameter dictionary, and generate the assembly."""
     try:
         naca = str(entry_naca.get().strip())
         span = float(entry_span.get())
@@ -115,33 +117,33 @@ def confirm_inputs():
         rib_positions = [float(e.get()) for e in rib_entries]
         export_parts_flag = export_switch.instate(['selected'])
 
-        # --- VALIDAZIONI ---
+        # --- Input validation ---
         if chord <= 0:
             raise ValueError("Computed chord <= 0. Check chord length and wall thickness.")
         if num_points < 4:
-            raise ValueError("Num. Points/Surface must be >= 4.")
+            raise ValueError("Num. Points per surface must be >= 4.")
         if not (naca.isdigit() and len(naca) == 4):
-            raise ValueError("NACA code must be 4 digits, e.g. 2412.")
+            raise ValueError("NACA code must be 4 digits, e.g., 2412.")
         if spar_d <= 0:
             raise ValueError("Spar outer diameter must be positive.")
         if spar_thk < 0:
             raise ValueError("Spar wall thickness must be >= 0.")
-        if spar_thk*2 >= spar_d:
-            raise ValueError("Spar wall thickness too large: inner radius <= 0. Reduce thickness or outer diameter.")
+        if spar_thk * 2 >= spar_d:
+            raise ValueError("Spar wall thickness too large. Inner radius <= 0.")
         if not (0.0 <= spar_x_rel <= 1.0):
-            raise ValueError("Spar X relative must be between 0 and 1.")
+            raise ValueError("Spar X relative position must be between 0 and 1.")
         if not os.path.isdir(os.path.dirname(export_path)) and export_path != "":
             raise ValueError("Export path folder does not exist.")
         if len(rib_positions) != rib_count:
-            raise ValueError("Rib count doesn't match number of rib position entries.")
+            raise ValueError("Rib count doesn't match number of position entries.")
         for p in rib_positions:
             if not (0.0 <= p <= 1.0):
                 raise ValueError("Each rib position must be between 0 and 1.")
             if p < 0.01 or p > 0.99:
-                # warn about ribs too close to tips
+                # Warn about ribs too close to the tips
                 pass
 
-        # Build params dict
+        # Build parameter dictionary
         params = {
             "NACA_PROFILE": naca,
             "SPAN": span,
@@ -160,21 +162,20 @@ def confirm_inputs():
             "EXPORT_SINGLE_PARTS": export_parts_flag
         }
 
-
-        # Chiama assembly con try/except per mostrare errore completo se fallisce
+        # Try to generate the full assembly
         try:
             assembly.generate_assembly(params)
             messagebox.showinfo("Done", "Assembly successfully generated!")
         except Exception as e:
             tb = traceback.format_exc()
-            messagebox.showerror("Assembly error", f"{e}\n\nTraceback:\n{tb}")
+            messagebox.showerror("Assembly Error", f"{e}\n\nTraceback:\n{tb}")
 
     except Exception as e:
-        messagebox.showerror("Invalid value", f"{e}")
+        messagebox.showerror("Invalid Value", f"{e}")
 
-# ===========
-#   LAYOUT 
-# ===========
+# ============================
+#   LAYOUT
+# ============================
 
 title = ttk.Label(main_frame, text="CAD Wing Assembly Generator", font=("Segoe UI", 16, "bold"))
 title.grid(row=0, column=0, columnspan=3, pady=15)
@@ -185,6 +186,7 @@ general_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
 general_frame.columnconfigure(1, weight=1)
 
 def add_row(frame, label, default, row, unit=None):
+    """Helper function to create labeled entry rows with optional unit labels."""
     ttk.Label(frame, text=label).grid(row=row, column=0, sticky="e", padx=5, pady=4)
     e = ttk.Entry(frame, width=12, justify="right")
     e.insert(0, default)
@@ -221,7 +223,7 @@ entry_spar_thick = add_row(spar_frame, "Wall Thickness:", "2.0", 2, "mm")
 entry_spar_x = add_row(spar_frame, "X Relative Pos.:", "0.25", 3)
 entry_spar_h = add_row(spar_frame, "Center Height:", "0.0", 4, "mm")
 
-# Separatore verticale
+# Vertical separator
 sep_vert = ttk.Separator(main_frame, orient="vertical")
 sep_vert.grid(row=1, column=1, rowspan=2, sticky="ns", padx=10, pady=10)
 
@@ -231,7 +233,7 @@ rib_frame.grid(row=1, column=2, rowspan=2, sticky="nsew", padx=10, pady=5)
 rib_frame.columnconfigure(0, weight=1)
 rib_frame.rowconfigure(3, weight=1)
 
-# Rib thickness e count
+# Rib thickness and count
 entry_rib_thickness = add_row(rib_frame, "Thickness:", "3.0", 0, "mm")
 
 ttk.Label(rib_frame, text="Rib Count:").grid(row=1, column=0, sticky="e", padx=5, pady=4)
@@ -239,13 +241,13 @@ spin_rib_count = ttk.Spinbox(rib_frame, from_=1, to=20, width=8, justify="right"
 spin_rib_count.set(5)
 spin_rib_count.grid(row=1, column=1, padx=5, pady=4, sticky="w")
 
-# Area scrollable per rib positions
+# Scrollable area for rib positions
 rib_positions_container = ttk.LabelFrame(rib_frame, text="Rib Positions (0-1)")
 rib_positions_container.grid(row=3, column=0, columnspan=2, sticky="nsew", pady=10)
 rib_positions_container.columnconfigure(0, weight=1)
 rib_positions_container.rowconfigure(0, weight=1)
 
-# Frame per canvas e scrollbar
+# Frame for canvas and scrollbar
 rib_scroll_frame = ttk.Frame(rib_positions_container)
 rib_scroll_frame.grid(row=0, column=0, sticky="nsew")
 rib_scroll_frame.columnconfigure(0, weight=1)
@@ -258,21 +260,21 @@ rib_positions_inner = ttk.Frame(rib_canvas)
 rib_canvas.create_window((0, 0), window=rib_positions_inner, anchor="nw", tags="inner_frame")
 rib_canvas.configure(yscrollcommand=rib_scrollbar.set)
 
-# Binding per il resize
+# Bindings for scroll behavior
 rib_positions_inner.bind("<Configure>", configure_scroll_region)
 rib_canvas.bind("<Configure>", on_canvas_configure)
 
 rib_canvas.grid(row=0, column=0, sticky="nsew")
 rib_scrollbar.grid(row=0, column=1, sticky="ns")
 
-# Inizializza le rib positions
+# Initialize rib positions
 update_rib_positions()
 
 # === BOTTOM CONTROLS ===
 bottom_frame = ttk.Frame(main_frame, padding=15)
 bottom_frame.grid(row=3, column=0, columnspan=3, pady=20, sticky="ew")
 
-# Centrare i controlli bottom
+# Center bottom controls
 bottom_frame.columnconfigure(0, weight=1)
 bottom_frame.columnconfigure(1, weight=0)
 bottom_frame.columnconfigure(2, weight=1)
