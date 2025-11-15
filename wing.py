@@ -69,3 +69,14 @@ def build_wing_shell(params):
     outer_solid = outer_profile.extrude(span)
     hollow_wing = outer_solid.faces("<Z").shell(wall_thickness, kind="intersection")
     return hollow_wing
+
+def wing_mass(wing_shell, density):
+
+    #Wing mass calculation with density (kg/m³).
+    #Conversion from mm³ to m³: (1 mm³ = 1e-9 m³)
+    VOLUME_TO_M3 = 1e-9
+    
+    volume_mm3 = wing_shell.val().Volume()
+    mass_kg = volume_mm3 * VOLUME_TO_M3 * density
+    
+    return mass_kg

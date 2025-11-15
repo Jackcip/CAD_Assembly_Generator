@@ -37,3 +37,14 @@ def build_single_spar(SPAR_SHAPE, SPAR_OUTER_DIAMETER, SPAR_WALL_THICKNESS, SPAR
 
     else:
         raise ValueError("SPAR_SHAPE must be 'circular' or 'square'.")
+
+def spar_mass(spar_part, density):
+
+    #Spar mass calculation with density (kg/m³).
+    #Conversion from mm³ to m³: (1 mm³ = 1e-9 m³)
+    VOLUME_TO_M3 = 1e-9
+    
+    volume_mm3 = spar_part.val().Volume()
+    mass_kg = volume_mm3 * VOLUME_TO_M3 * density
+    
+    return mass_kg

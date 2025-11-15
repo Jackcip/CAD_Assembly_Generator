@@ -7,7 +7,6 @@ import sys
 import traceback
 import threading
 
-
 # ============================
 #   FUNCTIONS
 # ============================
@@ -122,20 +121,28 @@ def confirm_inputs():
 
         # Try to generate the full assembly
         try:
-            assembly.generate_assembly(params)
+            #mass calculation from the assembly
+            total_mass = assembly.generate_assembly(params)
             # success: inform user and return True
             messagebox.showinfo("Done", "Assembly successfully generated!")
+            # Variable update in the GUI frame
+            mass_var.set(f"{total_mass:,.3f} kg")
             return True
         except Exception as e:
+            #throws exception
             tb = traceback.format_exc()
             messagebox.showerror("Assembly Error", f"{e}\n\nTraceback:\n{tb}")
+            mass_var.set("Error kg") # Update the error
             return False
 
     except Exception as e:
         messagebox.showerror("Invalid Value", f"{e}")
+        mass_var.set("Invalid kg") # Update the input error
         return False
 
-
+    except Exception as e:
+        messagebox.showerror("Invalid Value", f"{e}")
+        return False
 
 # ============================
 #   ICON AND RESOURCE PATH
@@ -326,10 +333,19 @@ entry_density_ribs.insert(0, "1500.00")
 entry_density_ribs.grid(row=1, column=1, padx=2, pady=4, sticky="w")
 ttk.Label(density_frame, text="kg/m³", foreground="#888888").grid(row=1, column=2, sticky="w", padx=(0, 10))
 
-# === EXPORT DATA ===
+# Export data
 export_frame = ttk.LabelFrame(right_bottom_frame, text="Export Data", padding=15)
 export_frame.grid(row=1, column=0, sticky="nsew")
 export_frame.columnconfigure(1, weight=1)
+
+# Assembly total mass
+mass_result_frame = ttk.LabelFrame(right_bottom_frame, text="Total Mass Result", padding=15)
+mass_result_frame.grid(row=2, column=0, sticky="nsew", pady=(10, 0))
+mass_result_frame.columnconfigure(1, weight=1)
+ttk.Label(mass_result_frame, text="Assembly Mass:").grid(row=0, column=0, sticky="w", padx=5, pady=4)
+mass_var = tk.StringVar(value="--- kg")
+mass_label = ttk.Label(mass_result_frame, textvariable=mass_var, font=("Segoe UI", 10, "bold"), foreground="#000000")
+mass_label.grid(row=0, column=1, sticky="e", padx=5, pady=4)
 
 # Export Path
 ttk.Label(export_frame, text="Export Path:").grid(row=0, column=0, sticky="e", padx=5, pady=4)

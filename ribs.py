@@ -37,15 +37,36 @@ def build_rib(params):
 
     return rib
 
-
 def build_all_ribs(params):
-    ribs = cq.Assembly()
+    
+    ribs_list = [] 
     span = params["SPAN"]
     rib_positions = params["RIB_POSITIONS"]
-
-    for i, rel_pos in enumerate(rib_positions):
+    
+    for rel_pos in rib_positions:
         pos_z = rel_pos * span
         rib = build_rib(params)
-        rib = rib.translate((0, 0, pos_z))
-        ribs.add(rib, name=f"Rib_{i}", color=cq.Color(0, 0, 1, 1))
-    return ribs
+        rib = rib.translate((0, 0, pos_z)) 
+        ribs_list.append(rib)
+
+    #Workplane construction as unique solid made out of ribs
+    if not ribs_list:
+        all_ribs = cq.Workplane("XY")
+    else:
+        #Combines first list element to the others
+        all_ribs = ribs_list[0].combine(ribs_list[1:]) 
+    
+    #Returns the solid and the ribs counter
+    return all_ribs
+
+def ribs_mass(rib_part, density):
+
+    #Total ribs mass calculation (kg/m³).
+    #Conversion from mm³ to m³: (1 mm³ = 1e-9 m³)
+
+    VOLUME_TO_M3 = 1e-9
+    
+    volume_mm3 = rib_part.val().Volume()
+    mass_kg = volume_mm3 * VOLUME_TO_M3 * density 
+    print(mass_kg)
+    return mass_kg
