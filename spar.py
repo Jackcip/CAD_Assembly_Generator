@@ -39,6 +39,7 @@ def build_spars(params):
     span = params["SPAN"]
     chord = params["CHORD"]
     protrusion = 80.0
+    params["RIB_THICKNESS"]
 
     main_length = span + (protrusion)
     main_spar = build_single_spar(
@@ -47,7 +48,6 @@ def build_spars(params):
         params["SPAR_WALL_THICKNESS"],
         params["SPAR_X_RELATIVE"],
         params["SPAR_CENTER_HEIGHT"],
-        params["RIB_THICKNESS"],
         main_length,
         chord,
     )

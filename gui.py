@@ -239,7 +239,7 @@ def add_row(frame, label, default, row, unit=None):
 
 
 entry_naca = add_row(general_frame, "NACA Code:", "2412", 0)
-entry_span = add_row(general_frame, "Wing Span:", "1400", 1, "mm")
+entry_span = add_row(general_frame, "Wing Span:", "1320", 1, "mm")
 entry_chord = add_row(general_frame, "Chord Length:", "350", 2, "mm")
 entry_wall = add_row(general_frame, "Wall Thickness:", "0.45", 3, "mm")
 entry_points = add_row(general_frame, "Num. Points/Surface:", "100", 4)

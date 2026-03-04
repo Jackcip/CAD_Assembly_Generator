@@ -24,7 +24,6 @@ def build_rib(params):
 
     hole_x = spar_x_rel * chord
 
-    # Safety checks
     if not (0.0 <= hole_x <= chord):
         raise ValueError("Spar hole x-position is outside chord range.")
     if spar_d <= 0:
@@ -32,7 +31,6 @@ def build_rib(params):
     if spar_d > chord * 0.9:
         raise ValueError("Spar diameter/size is unreasonably large relative to chord.")
 
-    # Add first hole
     wp1 = rib1.faces(">Z").workplane().moveTo(hole_x, spar_center_height)
 
     if spar_shape == "circular":
@@ -42,7 +40,6 @@ def build_rib(params):
     else:
         raise ValueError("Spar shape must be 'circular' or 'square'.")
 
-    # Add second hole if enabled
     if spar2_enable:
         hole2_x = spar2_x_rel * chord
         wp2 = rib1.faces(">Z").workplane().moveTo(hole2_x, spar2_h)
@@ -54,11 +51,9 @@ def build_rib(params):
         else:
             raise ValueError("Spar 2 shape must be 'circular' or 'square'.")
 
-        # Return tuple: (rib with 2 holes, rib with 1 hole)
         return rib2, rib1
 
-    # Return tuple: (rib with 1 hole, None)
-    return rib1, None
+    return None, rib1
 
 
 def build_all_ribs(params):
@@ -73,13 +68,10 @@ def build_all_ribs(params):
     if not rib_positions:
         return cq.Workplane("XY")
 
-    # Unpack the returned solids
     rib_2_holes, rib_1_hole = build_rib(params)
     ribs = []
 
-    # Iterate cleanly through all ribs
     for i, rel_pos in enumerate(rib_positions):
-        # Use the 2-hole rib up to spar2_end index, otherwise use 1-hole rib
         if spar2_enable and i < spar2_end:
             rib_copy = rib_2_holes.val().copy()
         else:
@@ -87,7 +79,6 @@ def build_all_ribs(params):
 
         wp = cq.Workplane("XY").newObject([rib_copy])
 
-        # Adjust position for the last rib to keep it inside the span
         if rel_pos == 1:
             wp = wp.translate((0, 0, (rel_pos * span) - t))
         else:
@@ -98,7 +89,6 @@ def build_all_ribs(params):
     if not ribs:
         return cq.Workplane("XY")
 
-    # Union all objects
     all_ribs = ribs[0]
     for r in ribs[1:]:
         all_ribs = all_ribs.union(r)
@@ -107,9 +97,7 @@ def build_all_ribs(params):
 
 
 def ribs_mass(rib_part, density):
-    # Conversion from mm³ to m³ (1 mm³ = 1e-9 m³)
     VOLUME_TO_M3 = 1e-9
-
     volume_mm3 = rib_part.val().Volume()
     mass_kg = volume_mm3 * VOLUME_TO_M3 * density
 
